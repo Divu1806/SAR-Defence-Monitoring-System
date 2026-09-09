@@ -1,0 +1,9 @@
+{
+    "APC_IFV": 0,
+    "Air_Defense": 1,
+    "Artillery": 2,
+    "Engineering": 3,
+    "Military_Truck": 4,
+    "Reconnaissance": 5,
+    "Tank": 6
+}

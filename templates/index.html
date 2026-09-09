@@ -1,0 +1,279 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta
+        name="viewport"
+        content="width=device-width,initial-scale=1"
+    >
+
+    <title>SAR Defence Monitoring System</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+</head>
+
+<body>
+
+<header>
+
+    <div>
+
+        <h1>
+            🛡 SAR DEFENCE MONITORING SYSTEM
+        </h1>
+
+        <p>
+            YOLO → CNN #1 → CNN #2 → TARGET IDENTIFICATION → THREAT ASSESSMENT
+        </p>
+
+    </div>
+
+    <b id="clock"></b>
+
+</header>
+
+
+<main>
+
+    <!-- SYSTEM STATUS -->
+
+    <section class="status">
+
+        <b id="status">
+            ● LOADING MODELS...
+        </b>
+
+        <span id="imageStatus">
+            No test image selected
+        </span>
+
+    </section>
+
+
+    <div class="grid">
+
+
+        <!-- LEFT SIDE -->
+
+        <section>
+
+            <!-- SAR IMAGE -->
+
+            <div class="panel image">
+
+                <h2>
+                    SAR TEST IMAGE
+                </h2>
+
+                <div class="viewer">
+
+                    <img id="result">
+
+                    <div id="placeholder">
+
+                        ◈
+                        <br>
+
+                        Click
+                        <b>RANDOM TEST IMAGE</b>
+
+                        <br>
+
+                        to select one image from the test dataset
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- EVENT LOG -->
+
+            <div class="panel">
+
+                <h2>
+                    DEFENCE SYSTEM EVENT LOG
+                </h2>
+
+                <div id="log">
+
+                    System initialized.
+                    <br>
+
+                    Waiting for model status...
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- RIGHT SIDE -->
+
+        <section>
+
+
+            <!-- CRITICAL THREAT PANEL -->
+
+            <div class="panel critical">
+
+                <h2>
+                    ⚠ CRITICAL VEHICLE THREAT
+                </h2>
+
+
+                <div class="critical-content">
+
+                    <strong id="critical">
+                        0
+                    </strong>
+
+
+                    <span>
+
+                        CRITICAL VEHICLE THREAT
+
+                        <br>
+
+                        <small>
+                            detected in current image
+                        </small>
+
+                    </span>
+
+                </div>
+
+
+                <!-- STOP ALERT BUTTON -->
+
+                <button
+                    id="stopAlert"
+                    class="stop-alert"
+                    onclick="stopAlert()"
+                    disabled
+                >
+                    🔇 STOP ALERT
+                </button>
+
+            </div>
+
+
+            <!-- TEST CONTROL -->
+
+            <div class="panel">
+
+                <h2>
+                    ⚙ TEST CONTROL
+                </h2>
+
+
+                <button
+                    id="run"
+                    onclick="runTest()"
+                >
+                    ◈ RANDOM TEST IMAGE
+                </button>
+
+
+                <button
+                    class="reset"
+                    onclick="reset()"
+                >
+                    ↻ RESET RESULTS
+                </button>
+
+            </div>
+
+
+            <!-- DETECTION RESULTS -->
+
+            <div class="panel results">
+
+                <h2>
+
+                    DETECTION RESULTS
+
+                    <small>
+                        YOLO → CNN #1 → CNN #2 → SCORE → THREAT
+                    </small>
+
+                </h2>
+
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                YOLO
+                            </th>
+
+                            <th>
+                                CNN #1
+                            </th>
+
+                            <th>
+                                CNN #2
+                            </th>
+
+                            <th>
+                                SCORE
+                            </th>
+
+                            <th>
+                                THREAT
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="rows">
+
+                        <tr>
+
+                            <td colspan="5">
+                                No results to display.
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <footer>
+
+        AI-POWERED SAR VEHICLE DETECTION •
+        CLASSIFICATION •
+        THREAT MONITORING •
+        ALERT SOUND UP TO 01:00
+
+    </footer>
+
+</main>
+
+
+<script src="/static/script.js"></script>
+
+</body>
+
+</html>

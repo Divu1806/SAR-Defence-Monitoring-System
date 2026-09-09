@@ -1,0 +1,6 @@
+Flask
+ultralytics
+tensorflow
+opencv-python
+numpy
+Pillow
