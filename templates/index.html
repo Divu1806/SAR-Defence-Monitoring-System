@@ -2,10 +2,12 @@
 <html>
 
 <head>
+
     <meta charset="utf-8">
+
     <meta
         name="viewport"
-        content="width=device-width,initial-scale=1"
+        content="width=device-width, initial-scale=1"
     >
 
     <title>SAR Defence Monitoring System</title>
@@ -14,9 +16,12 @@
         rel="stylesheet"
         href="/static/style.css"
     >
+
 </head>
 
+
 <body>
+
 
 <header>
 
@@ -37,9 +42,13 @@
 </header>
 
 
+
 <main>
 
-    <!-- SYSTEM STATUS -->
+
+    <!-- =====================================================
+         SYSTEM STATUS
+    ====================================================== -->
 
     <section class="status">
 
@@ -54,14 +63,15 @@
     </section>
 
 
+
     <div class="grid">
 
 
-        <!-- LEFT SIDE -->
+        <!-- =================================================
+             LEFT SIDE
+        ================================================== -->
 
         <section>
-
-            <!-- SAR IMAGE -->
 
             <div class="panel image">
 
@@ -69,17 +79,26 @@
                     SAR TEST IMAGE
                 </h2>
 
+
                 <div class="viewer">
 
-                    <img id="result">
+                    <img
+                        id="result"
+                        alt="SAR Detection Result"
+                    >
+
 
                     <div id="placeholder">
 
                         ◈
+
                         <br>
 
                         Click
-                        <b>RANDOM TEST IMAGE</b>
+
+                        <b>
+                            RANDOM TEST IMAGE
+                        </b>
 
                         <br>
 
@@ -91,35 +110,20 @@
 
             </div>
 
-
-            <!-- EVENT LOG -->
-
-            <div class="panel">
-
-                <h2>
-                    DEFENCE SYSTEM EVENT LOG
-                </h2>
-
-                <div id="log">
-
-                    System initialized.
-                    <br>
-
-                    Waiting for model status...
-
-                </div>
-
-            </div>
-
         </section>
 
 
-        <!-- RIGHT SIDE -->
+
+        <!-- =================================================
+             RIGHT SIDE
+        ================================================== -->
 
         <section>
 
 
-            <!-- CRITICAL THREAT PANEL -->
+            <!-- =============================================
+                 CRITICAL VEHICLE THREAT
+            ============================================== -->
 
             <div class="panel critical">
 
@@ -128,7 +132,7 @@
                 </h2>
 
 
-                <div class="critical-content">
+                <div>
 
                     <strong id="critical">
                         0
@@ -150,6 +154,7 @@
                 </div>
 
 
+
                 <!-- STOP ALERT BUTTON -->
 
                 <button
@@ -164,7 +169,10 @@
             </div>
 
 
-            <!-- TEST CONTROL -->
+
+            <!-- =============================================
+                 TEST CONTROL
+            ============================================== -->
 
             <div class="panel">
 
@@ -191,7 +199,10 @@
             </div>
 
 
-            <!-- DETECTION RESULTS -->
+
+            <!-- =============================================
+                 DETECTION RESULTS
+            ============================================== -->
 
             <div class="panel results">
 
@@ -253,12 +264,17 @@
 
             </div>
 
+
         </section>
+
 
     </div>
 
 
-    <!-- FOOTER -->
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
 
     <footer>
 
@@ -269,10 +285,13 @@
 
     </footer>
 
+
 </main>
 
 
+
 <script src="/static/script.js"></script>
+
 
 </body>
 
