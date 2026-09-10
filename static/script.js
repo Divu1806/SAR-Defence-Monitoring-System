@@ -1,364 +1,799 @@
+/* =========================================================
+   SAR DEFENCE MONITORING SYSTEM
+   FRONTEND SCRIPT
+========================================================= */
+
+
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
+
 let ctx = null;
+
 let running = false;
+
 let start = 0;
-let alertTimer = null;
+
 let currentOscillator = null;
 
-function log(x) {
-    let l = document.getElementById("log");
-    l.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${x}`;
-    l.scrollTop = l.scrollHeight;
-}
+let alertTimeout = null;
+
+
+
+/* =========================================================
+   CLOCK
+========================================================= */
 
 function clock() {
+
     document.getElementById("clock").textContent =
         new Date().toLocaleTimeString();
+
 }
 
 setInterval(clock, 1000);
+
 clock();
 
+
+
+/* =========================================================
+   MODEL STATUS
+========================================================= */
+
 async function status() {
+
     try {
-        let d = await (await fetch("/api/status")).json();
-        let s = document.getElementById("status");
 
-        if (d.ready) {
-            s.textContent = "● ALL MODELS READY";
-            s.className = "ready";
-            document.getElementById("run").disabled = false;
-        }
-        else if (d.error) {
-            s.textContent = "● MODEL ERROR";
-            s.className = "error";
-            document.getElementById("run").disabled = true;
-            log(d.error);
+        const response =
+            await fetch("/api/status");
+
+
+        const data =
+            await response.json();
+
+
+        const statusElement =
+            document.getElementById("status");
+
+
+        if (data.ready) {
+
+            statusElement.textContent =
+                "● ALL MODELS READY";
+
+            statusElement.className =
+                "ready";
+
+
+            document.getElementById(
+                "run"
+            ).disabled = false;
+
         }
 
-    } catch (e) {
-        log("Backend connection error.");
+
+        else if (data.error) {
+
+            statusElement.textContent =
+                "● MODEL ERROR";
+
+            statusElement.className =
+                "error";
+
+
+            document.getElementById(
+                "run"
+            ).disabled = true;
+
+
+            console.error(
+                "Model error:",
+                data.error
+            );
+
+        }
+
     }
+
+
+    catch (error) {
+
+        console.error(
+            "Backend connection error:",
+            error
+        );
+
+    }
+
 }
 
 
+
+/* =========================================================
+   RUN RANDOM TEST IMAGE
+========================================================= */
+
 async function runTest() {
 
-    let b = document.getElementById("run");
+    const button =
+        document.getElementById("run");
 
-    b.disabled = true;
-    b.textContent = "PROCESSING...";
 
-    log("Selecting one random image...");
+    button.disabled =
+        true;
+
+
+    button.textContent =
+        "PROCESSING...";
+
 
     try {
 
-        let d = await (
+        /* ==============================================
+           CALL FLASK BACKEND
+        ============================================== */
+
+        const response =
             await fetch(
                 "/api/random-test",
                 {
                     method: "POST"
                 }
-            )
-        ).json();
+            );
 
-        if (!d.success) {
-            throw Error(d.error);
+
+        const data =
+            await response.json();
+
+
+        if (!data.success) {
+
+            throw new Error(
+                data.error
+            );
+
         }
 
-        let im = document.getElementById("result");
 
-        im.src = d.image;
-        im.className = "show";
 
-        document.getElementById("placeholder").style.display = "none";
+        /* ==============================================
+           DISPLAY PROCESSED IMAGE
+        ============================================== */
 
-        document.getElementById("imageStatus").textContent =
-            "Selected: " + d.filename;
+        const image =
+            document.getElementById("result");
 
-        document.getElementById("critical").textContent =
-            d.critical_count;
 
-        let body = document.getElementById("rows");
+        image.src =
+            data.image;
 
-        body.innerHTML = "";
 
-        if (!d.results.length) {
+        image.className =
+            "show";
 
-            body.innerHTML =
-                '<tr><td colspan="5">No vehicles detected.</td></tr>';
-        }
 
-        for (let r of d.results) {
+        document.getElementById(
+            "placeholder"
+        ).style.display =
+            "none";
 
-            let c = r.threat.toLowerCase();
 
-            body.innerHTML += `
+        document.getElementById(
+            "imageStatus"
+        ).textContent =
+            "Selected: " + data.filename;
+
+
+
+        /* ==============================================
+           DISPLAY CRITICAL COUNT
+        ============================================== */
+
+        document.getElementById(
+            "critical"
+        ).textContent =
+            data.critical_count;
+
+
+
+        /* ==============================================
+           DISPLAY DETECTION RESULTS
+        ============================================== */
+
+        const tableBody =
+            document.getElementById(
+                "rows"
+            );
+
+
+        tableBody.innerHTML =
+            "";
+
+
+        if (!data.results.length) {
+
+            tableBody.innerHTML =
+                `
                 <tr>
-                    <td>
-                        Detected (${r.yolo_confidence.toFixed(2)})
-                    </td>
-
-                    <td>
-                        ${r.broad}
-                        (${r.broad_confidence.toFixed(2)})
-                    </td>
-
-                    <td>
-                        ${r.specific}
-                        (${r.specific_confidence.toFixed(2)})
-                    </td>
-
-                    <td>
-                        ${r.score.toFixed(2)}
-                    </td>
-
-                    <td class="t-${c}">
-                        ${r.threat}
+                    <td colspan="5">
+                        No vehicles detected.
                     </td>
                 </tr>
+                `;
+
+        }
+
+
+
+        /* ==============================================
+           ADD EACH VEHICLE RESULT
+        ============================================== */
+
+        for (
+            const result of data.results
+        ) {
+
+            const threatClass =
+                result.threat.toLowerCase();
+
+
+            tableBody.innerHTML += `
+
+                <tr>
+
+                    <td>
+                        Detected
+                        (${result.yolo_confidence.toFixed(2)})
+                    </td>
+
+
+                    <td>
+                        ${result.broad}
+                        (${result.broad_confidence.toFixed(2)})
+                    </td>
+
+
+                    <td>
+                        ${result.specific}
+                        (${result.specific_confidence.toFixed(2)})
+                    </td>
+
+
+                    <td>
+                        ${result.score.toFixed(2)}
+                    </td>
+
+
+                    <td class="t-${threatClass}">
+                        ${result.threat}
+                    </td>
+
+                </tr>
+
             `;
+
         }
 
-        log(
-            "YOLO → CNN #1 → CNN #2 → Threat completed."
-        );
 
-        log(
-            "Vehicles detected: " + d.vehicle_count
-        );
 
-        log(
-            "Critical vehicles: " + d.critical_count
-        );
+        /* ==============================================
+           CRITICAL VEHICLE ALERT
+        ============================================== */
 
-        if (d.critical_count) {
+        if (
+            data.critical_count > 0
+        ) {
+
             startAlert(60);
+
+        }
+
+        else {
+
+            stopAlert(false);
+
         }
 
     }
-    catch (e) {
 
-        alert(e.message);
 
-        log(
-            "TEST ERROR: " + e.message
+    catch (error) {
+
+        alert(
+            error.message
+        );
+
+
+        console.error(
+            "TEST ERROR:",
+            error
         );
 
     }
+
+
     finally {
 
-        b.disabled = false;
-        b.textContent = "◈ RANDOM TEST IMAGE";
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            "◈ RANDOM TEST IMAGE";
+
     }
+
 }
 
 
-/* =========================================================
-   START CRITICAL ALERT
-   ========================================================= */
 
-function startAlert(sec) {
+/* =========================================================
+   NEW EMERGENCY ALERT SOUND
+========================================================= */
+
+function startAlert(seconds) {
+
+
+    /*
+       Do not start another alert
+       if one is already running.
+    */
 
     if (running) {
+
         return;
+
     }
+
 
     try {
 
-        ctx = ctx || new AudioContext();
+
+        /* ==============================================
+           CREATE AUDIO CONTEXT
+        ============================================== */
+
+        ctx =
+            ctx ||
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+
+        /*
+           Resume audio context.
+        */
 
         ctx.resume();
 
-        running = true;
 
-        start = Date.now();
+        running =
+            true;
 
-        /* Enable STOP ALERT button */
 
-        let stopButton =
-            document.getElementById("stopAlert");
+        start =
+            Date.now();
+
+
+
+        /* ==============================================
+           ENABLE STOP ALERT BUTTON
+        ============================================== */
+
+        const stopButton =
+            document.getElementById(
+                "stopAlert"
+            );
+
 
         if (stopButton) {
-            stopButton.disabled = false;
-            stopButton.textContent = "🔇 STOP ALERT";
+
+            stopButton.disabled =
+                false;
+
+
+            stopButton.textContent =
+                "🔇 STOP ALERT";
+
         }
 
-        log(
-            "!!! CRITICAL ALERT SOUND STARTED !!!"
-        );
 
-        let pattern = [
-            [900, 180],
-            [1300, 180],
-            [1650, 260],
-            [1300, 180],
-            [900, 420]
-        ];
 
-        let i = 0;
+        /* ==============================================
+           EMERGENCY ALARM
+        ============================================== */
 
         function beep() {
 
+
+            /*
+               Check whether alert
+               was manually stopped.
+            */
+
             if (!running) {
+
                 return;
+
             }
 
-            /* 60-second automatic limit */
 
-            if (Date.now() - start >= sec * 1000) {
+
+            /*
+               Automatic 60-second limit.
+            */
+
+            if (
+                Date.now() - start
+                >= seconds * 1000
+            ) {
 
                 stopAlert();
 
                 return;
+
             }
 
-            let [frequency, duration] =
-                pattern[i++ % pattern.length];
 
-            let oscillator =
+
+            /* ==========================================
+               CREATE OSCILLATOR
+            ========================================== */
+
+            const oscillator =
                 ctx.createOscillator();
 
-            let gain =
+
+            const gain =
                 ctx.createGain();
+
 
             currentOscillator =
                 oscillator;
 
-            oscillator.type = "square";
 
-            oscillator.frequency.value =
-                frequency;
+
+            /* ==========================================
+               FAST PULSING SOUND
+            ========================================== */
+
+            oscillator.type =
+                "square";
+
+
+            /*
+               Start frequency.
+            */
+
+            oscillator.frequency.setValueAtTime(
+                1100,
+                ctx.currentTime
+            );
+
+
+            /*
+               Quickly change frequency.
+            */
+
+            oscillator.frequency.setValueAtTime(
+                1700,
+                ctx.currentTime + 0.18
+            );
+
+
+            /*
+               Change back.
+            */
+
+            oscillator.frequency.setValueAtTime(
+                1100,
+                ctx.currentTime + 0.35
+            );
+
+
+
+            /* ==========================================
+               SOUND VOLUME
+            ========================================== */
 
             gain.gain.setValueAtTime(
                 0.0001,
                 ctx.currentTime
             );
 
+
             gain.gain.exponentialRampToValueAtTime(
-                0.12,
-                ctx.currentTime + 0.01
+                0.22,
+                ctx.currentTime + 0.02
             );
+
 
             gain.gain.exponentialRampToValueAtTime(
                 0.0001,
-                ctx.currentTime + duration / 1000
+                ctx.currentTime + 0.35
             );
 
-            oscillator.connect(gain);
 
-            gain.connect(ctx.destination);
+
+            /* ==========================================
+               CONNECT AUDIO
+            ========================================== */
+
+            oscillator.connect(
+                gain
+            );
+
+
+            gain.connect(
+                ctx.destination
+            );
+
+
+
+            /* ==========================================
+               PLAY SOUND
+            ========================================== */
 
             oscillator.start();
 
+
             oscillator.stop(
-                ctx.currentTime + duration / 1000
+                ctx.currentTime + 0.35
             );
 
-            setTimeout(
-                beep,
-                duration + 130
-            );
+
+
+            /* ==========================================
+               NEXT ALERT PULSE
+            ========================================== */
+
+            alertTimeout =
+                setTimeout(
+                    beep,
+                    500
+                );
+
         }
+
+
+
+        /*
+           Start the first beep.
+        */
 
         beep();
 
     }
-    catch (e) {
 
-        log(
-            "Browser sound unavailable; click the page and test again."
+
+    catch (error) {
+
+        console.error(
+            "Audio error:",
+            error
         );
+
     }
+
 }
 
 
+
 /* =========================================================
-   STOP CRITICAL ALERT
-   ========================================================= */
+   STOP ALERT
+========================================================= */
 
-function stopAlert() {
+function stopAlert(
+    resetButton = true
+) {
 
-    running = false;
 
-    /* Stop current sound immediately */
+    /*
+       Stop alert state.
+    */
 
-    if (currentOscillator) {
+    running =
+        false;
+
+
+
+    /* ==============================================
+       STOP CURRENT OSCILLATOR
+    ============================================== */
+
+    if (
+        currentOscillator
+    ) {
 
         try {
+
             currentOscillator.stop();
-        }
-        catch (e) {
-            /* oscillator may already be stopped */
+
         }
 
-        currentOscillator = null;
+        catch (error) {
+
+            /*
+               Oscillator may already
+               have stopped naturally.
+            */
+
+        }
+
+
+        currentOscillator =
+            null;
+
     }
 
-    /* Cancel pending timers */
 
-    if (alertTimer) {
 
-        clearTimeout(alertTimer);
+    /* ==============================================
+       CLEAR NEXT ALERT TIMER
+    ============================================== */
 
-        alertTimer = null;
+    if (
+        alertTimeout
+    ) {
+
+        clearTimeout(
+            alertTimeout
+        );
+
+
+        alertTimeout =
+            null;
+
     }
 
-    /* Disable STOP button */
 
-    let stopButton =
-        document.getElementById("stopAlert");
 
-    if (stopButton) {
+    /* ==============================================
+       RESET STOP BUTTON
+    ============================================== */
 
-        stopButton.disabled = true;
-        stopButton.textContent = "STOP ALERT ";
+    if (resetButton) {
+
+        const stopButton =
+            document.getElementById(
+                "stopAlert"
+            );
+
+
+        if (stopButton) {
+
+            stopButton.disabled =
+                true;
+
+
+            stopButton.textContent =
+                "🔇 STOP ALERT";
+
+        }
+
     }
 
-    log(
-        "Critical alert sound stopped by operator."
-    );
 }
 
 
+
 /* =========================================================
-   RESET
-   ========================================================= */
+   RESET RESULTS
+========================================================= */
 
 function reset() {
 
-    /* Stop alert first */
+
+    /*
+       Stop any active alert.
+    */
 
     stopAlert();
 
-    document.getElementById("result").className = "";
 
-    document.getElementById("result").src = "";
 
-    document.getElementById("placeholder").style.display =
+    /* ==============================================
+       CLEAR IMAGE
+    ============================================== */
+
+    const image =
+        document.getElementById(
+            "result"
+        );
+
+
+    image.className =
+        "";
+
+
+    image.src =
+        "";
+
+
+
+    /* ==============================================
+       SHOW PLACEHOLDER
+    ============================================== */
+
+    document.getElementById(
+        "placeholder"
+    ).style.display =
         "block";
 
-    document.getElementById("imageStatus").textContent =
+
+
+    /* ==============================================
+       RESET IMAGE STATUS
+    ============================================== */
+
+    document.getElementById(
+        "imageStatus"
+    ).textContent =
         "No test image selected";
 
-    document.getElementById("critical").textContent =
+
+
+    /* ==============================================
+       RESET CRITICAL COUNT
+    ============================================== */
+
+    document.getElementById(
+        "critical"
+    ).textContent =
         "0";
 
-    document.getElementById("rows").innerHTML =
-        '<tr><td colspan="5">No results to display.</td></tr>';
 
-    log(
-        "Results reset."
-    );
+
+    /* ==============================================
+       CLEAR DETECTION TABLE
+    ============================================== */
+
+    document.getElementById(
+        "rows"
+    ).innerHTML =
+
+        `
+        <tr>
+            <td colspan="5">
+                No results to display.
+            </td>
+        </tr>
+        `;
+
 }
+
 
 
 /* =========================================================
    INITIALIZATION
-   ========================================================= */
+========================================================= */
 
-document.getElementById("run").disabled = true;
+
+/*
+   Disable test button until
+   models are ready.
+*/
+
+document.getElementById(
+    "run"
+).disabled =
+    true;
+
+
+
+/*
+   Check model status.
+*/
 
 status();
+
+
+
+/*
+   Check model status every 5 seconds.
+*/
 
 setInterval(
     status,
